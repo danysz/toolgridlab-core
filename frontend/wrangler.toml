@@ -1,0 +1,8 @@
+name = "toolgridlab-web"
+compatibility_date = "2026-10-01"
+pages_build_output_dir = "build/web"
+
+[vars]
+APP_NAME = "ToolGridLab"
+API_BASE_URL = "https://api.toolgridlab.com"
+APP_ENV = "production"

@@ -1,0 +1,35 @@
+# Private Specs (do not commit to public open-source repo)
+ARCH_SPEC.md
+MATRIX_SPEC.md
+VALIDATION_LANDING_SPEC.md
+*_SPEC.md
+
+# Credentials & Secrets
+*.keys.json
+*credentials.json
+.gdrive*
+.env
+.env.*
+!.env.example
+
+# Flutter build artifacts
+frontend/.dart_tool/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+frontend/build/
+frontend/.packages
+frontend/.pub-cache/
+frontend/.pub/
+
+# Go build artifacts
+backend/bin/
+backend/dist/
+backend/vendor/
+*.exe
+*.test
+*.out
+
+# macOS & Editor files
+.DS_Store
+.idea/
+.vscode/
