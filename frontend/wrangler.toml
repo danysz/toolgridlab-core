@@ -6,3 +6,8 @@ pages_build_output_dir = "build/web"
 APP_NAME = "ToolGridLab"
 API_BASE_URL = "https://api.toolgridlab.com"
 APP_ENV = "production"
+
+[env.preview.vars]
+APP_NAME = "ToolGridLab (Staging)"
+API_BASE_URL = "https://api-staging.toolgridlab.com"
+APP_ENV = "staging"

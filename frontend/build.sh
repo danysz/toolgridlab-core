@@ -1,15 +1,16 @@
 #!/bin/bash
 set -e
 
-# Default to production if not specified by Cloudflare environment
-# On Cloudflare Pages, CF_PAGES_BRANCH is set automatically (e.g., "staging" vs "main")
-if [ -z "$APP_ENV" ]; then
-  if [ "$CF_PAGES_BRANCH" = "staging" ]; then
-    APP_ENV="staging"
-  else
-    APP_ENV="production"
+# On Cloudflare Pages, if building the 'staging' branch, enforce staging defaults
+if [ "$CF_PAGES_BRANCH" = "staging" ]; then
+  APP_ENV="staging"
+  if [ "$API_BASE_URL" = "https://api.toolgridlab.com" ] || [ -z "$API_BASE_URL" ]; then
+    API_BASE_URL="https://api-staging.toolgridlab.com"
   fi
 fi
+
+# Default to production if still not specified
+APP_ENV=${APP_ENV:-"production"}
 
 # Load local .env.<APP_ENV> file if present and variables aren't already set in environment
 if [ -f ".env.$APP_ENV" ]; then
