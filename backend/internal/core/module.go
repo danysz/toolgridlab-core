@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"io/fs"
 	"log"
 	"net/http"
 )
@@ -14,6 +15,14 @@ type Module interface {
 	Schema() string
 	// RegisterRoutes mounts the module's HTTP endpoints under /api/v1/<ID>/
 	RegisterRoutes(mux *http.ServeMux, requireAuth func(http.Handler) http.Handler)
+}
+
+// MigratableModule is an optional interface that modules can implement
+// to bundle embedded SQL migrations that are automatically executed and version-tracked on startup.
+type MigratableModule interface {
+	Module
+	// Migrations returns the embedded filesystem and directory path containing *.sql files.
+	Migrations() (fsys fs.FS, dir string)
 }
 
 // ModuleRegistry manages registered pluggable modules

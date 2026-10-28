@@ -37,13 +37,17 @@ func main() {
 		}
 	}
 
-	// 2. Connect to Supabase PostgreSQL
+	// 2. Connect to Supabase PostgreSQL & Run Embedded Migrations
 	ctx := context.Background()
 	db, err := database.Connect(ctx, cfg.DatabaseURL)
 	if err != nil {
 		log.Fatalf("[DB] Fatal connection error: %v", err)
 	}
 	defer db.Close()
+
+	if err := db.RunCoreMigrations(ctx); err != nil {
+		log.Fatalf("[DB] Core schema migration failed: %v", err)
+	}
 
 	// 3. Initialize Core Services & Utilities
 	userService := core.NewUserService(db.Pool)
@@ -59,8 +63,14 @@ func main() {
 	coreHandler := core.NewCoreHandler(userService, emailVerifier, moduleRegistry)
 	coreHandler.RegisterRoutes(mux, requireAuth)
 
-	// Register any external pluggable modules here
+	// Register any external pluggable modules & run their embedded migrations
 	for _, m := range moduleRegistry.All() {
+		if migratable, ok := m.(core.MigratableModule); ok {
+			fsys, dir := migratable.Migrations()
+			if err := db.RunMigrationsFS(ctx, m.ID(), fsys, dir); err != nil {
+				log.Fatalf("[DB] Migration failed for module '%s': %v", m.ID(), err)
+			}
+		}
 		m.RegisterRoutes(mux, requireAuth)
 	}
 
