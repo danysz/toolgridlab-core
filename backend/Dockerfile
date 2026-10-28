@@ -1,7 +1,7 @@
 # Multi-stage Dockerfile for Google Cloud Run (zero idle baseline cost)
 
 # Stage 1: Build binary
-FROM golang:1.22-alpine AS builder
+FROM golang:1.25-alpine AS builder
 
 WORKDIR /app
 
@@ -15,8 +15,8 @@ RUN go mod download
 # Copy source code
 COPY . .
 
-# Build statically linked binary
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-w -s" -o /app/server ./cmd/server/main.go
+# Build statically linked binary for Cloud Run (linux/amd64)
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /app/server ./cmd/server/main.go
 
 # Stage 2: Minimal runtime image
 FROM gcr.io/distroless/static-debian12:nonroot
