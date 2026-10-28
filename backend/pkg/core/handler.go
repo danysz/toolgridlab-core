@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/toolgridlab/toolgridlab-core/backend/internal/middleware"
-	"github.com/toolgridlab/toolgridlab-core/backend/internal/verification"
+	"github.com/toolgridlab/toolgridlab-core/backend/pkg/middleware"
+	"github.com/toolgridlab/toolgridlab-core/backend/pkg/verification"
 )
 
 type CoreHandler struct {
@@ -31,6 +31,9 @@ func (h *CoreHandler) RegisterRoutes(mux *http.ServeMux, requireAuth func(http.H
 
 	// Generic Reusable Email Verification Utility
 	mux.HandleFunc("POST /api/v1/core/verify-email", h.HandleVerifyEmail)
+
+	// Zero-latency Edge Geo / Country Detection
+	mux.HandleFunc("GET /api/v1/core/geo", h.HandleGeo)
 
 	// List Registered Modules
 	mux.HandleFunc("GET /api/v1/core/modules", h.HandleListModules)
@@ -62,6 +65,7 @@ type VerifyEmailRequest struct {
 type VerifyEmailResponse struct {
 	Valid   bool   `json:"valid"`
 	Email   string `json:"email"`
+	Country string `json:"country,omitempty"`
 	Message string `json:"message"`
 }
 
@@ -72,10 +76,13 @@ func (h *CoreHandler) HandleVerifyEmail(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	country := verification.ExtractClientCountry(r, "US")
+
 	if err := h.emailVerifier.Verify(r.Context(), req.Email); err != nil {
 		middleware.RespondJSON(w, http.StatusOK, VerifyEmailResponse{
 			Valid:   false,
 			Email:   req.Email,
+			Country: country,
 			Message: err.Error(),
 		})
 		return
@@ -84,7 +91,14 @@ func (h *CoreHandler) HandleVerifyEmail(w http.ResponseWriter, r *http.Request) 
 	middleware.RespondJSON(w, http.StatusOK, VerifyEmailResponse{
 		Valid:   true,
 		Email:   req.Email,
+		Country: country,
 		Message: "email is valid and reachable",
+	})
+}
+
+func (h *CoreHandler) HandleGeo(w http.ResponseWriter, r *http.Request) {
+	middleware.RespondJSON(w, http.StatusOK, map[string]string{
+		"country": verification.ExtractClientCountry(r, "US"),
 	})
 }
 

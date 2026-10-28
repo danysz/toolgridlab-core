@@ -4,10 +4,14 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+var validSchemaRegex = regexp.MustCompile(`^[a-z0-9_]{1,63}$`)
 
 type DB struct {
 	Pool *pgxpool.Pool
@@ -57,6 +61,37 @@ func (db *DB) SetSchema(ctx context.Context, schema string) error {
 	if db.Pool == nil {
 		return nil
 	}
-	_, err := db.Pool.Exec(ctx, fmt.Sprintf("SET search_path TO %s;", schema))
+	if !validSchemaRegex.MatchString(schema) {
+		return fmt.Errorf("invalid schema identifier: %q", schema)
+	}
+	_, err := db.Pool.Exec(ctx, fmt.Sprintf("SET search_path TO %s, public;", schema))
 	return err
+}
+
+// WithSchemaTx runs fn inside a database transaction with search_path scoped via SET LOCAL
+// to guarantee strict schema isolation across pooled connections.
+func (db *DB) WithSchemaTx(ctx context.Context, schema string, fn func(tx pgx.Tx) error) error {
+	if db.Pool == nil {
+		return fmt.Errorf("database pool is not initialized (in-memory mode)")
+	}
+	if !validSchemaRegex.MatchString(schema) {
+		return fmt.Errorf("invalid schema identifier: %q", schema)
+	}
+
+	tx, err := db.Pool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+
+	if _, err := tx.Exec(ctx, fmt.Sprintf("SET LOCAL search_path TO %s, public;", schema)); err != nil {
+		_ = tx.Rollback(ctx)
+		return fmt.Errorf("failed to set local search_path to %s: %w", schema, err)
+	}
+
+	if err := fn(tx); err != nil {
+		_ = tx.Rollback(ctx)
+		return err
+	}
+
+	return tx.Commit(ctx)
 }

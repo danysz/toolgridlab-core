@@ -37,15 +37,17 @@ The foundational open-source core engine and boilerplate for building scalable m
 ```text
 toolgridlab-core/
 ├── backend/
-│   ├── cmd/server/main.go            # Monolith entrypoint & graceful shutdown
-│   ├── internal/
+│   ├── cmd/server/main.go            # Monolith entrypoint (calls engine.Run)
+│   ├── pkg/
+│   │   ├── engine/engine.go          # Exported server bootstrapper for commercial modules
 │   │   ├── config/config.go          # Environment configuration loader
 │   │   ├── core/                     # Pluggable module registry & user profiles
-│   │   │   ├── module.go             # Module interface definition
-│   │   │   ├── handler.go            # Healthz, email verifier, and module discovery
+│   │   │   ├── module.go             # Module, ConfigurableModule, MigratableModule interfaces
+│   │   │   ├── handler.go            # Healthz, email verifier, geo, and module discovery
 │   │   │   └── user_service.go       # User profile synchronization
-│   │   ├── database/                 # Supabase PostgreSQL pool & migrations
-│   │   │   ├── postgres.go           # pgxpool connection manager
+│   │   ├── database/                 # Supabase PostgreSQL pool & versioned migrations
+│   │   │   ├── postgres.go           # pgxpool connection manager & WithSchemaTx
+│   │   │   ├── migrator.go           # Embedded SQL migration runner & checksum tracker
 │   │   │   └── migrations/           # schema_core initialization
 │   │   ├── middleware/               # HTTP middleware pipeline
 │   │   │   ├── schema_router.go      # Dynamic search_path routing
@@ -55,7 +57,7 @@ toolgridlab-core/
 │   │   │   └── sentry.go             # Sentry panic recovery
 │   │   └── verification/             # Reusable verification utilities
 │   │       ├── email_verifier.go     # RFC 5322 regex, disposable block, DNS MX lookup
-│   │       └── ip_anonymizer.go      # SHA-256 IP anonymization
+│   │       └── ip_anonymizer.go      # SHA-256 IP anonymization & CF-IPCountry extraction
 │   ├── Dockerfile                    # Multi-stage distroless build for Cloud Run
 │   └── .env.example
 ├── frontend/
@@ -135,7 +137,7 @@ package mytool
 
 import (
     "net/http"
-    "github.com/toolgridlab/toolgridlab-core/backend/internal/core"
+    "github.com/toolgridlab/toolgridlab-core/backend/pkg/core"
 )
 
 type MyToolModule struct{}
@@ -152,10 +154,10 @@ func (m *MyToolModule) RegisterRoutes(mux *http.ServeMux, requireAuth func(http.
 }
 ```
 
-3. Register your module in `cmd/server/main.go`:
+3. Boot the engine with your module in `main.go`:
 
 ```go
-moduleRegistry.Register(&mytool.MyToolModule{})
+engine.Run(&mytool.MyToolModule{})
 ```
 
 The dynamic schema router will automatically intercept any request matching `/api/v1/mytool/*` and route queries to `schema_mytool`.

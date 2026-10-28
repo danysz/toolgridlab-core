@@ -5,6 +5,9 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+
+	"github.com/toolgridlab/toolgridlab-core/backend/pkg/config"
+	"github.com/toolgridlab/toolgridlab-core/backend/pkg/database"
 )
 
 // Module represents a pluggable micro-utility in the modular monolith
@@ -15,6 +18,13 @@ type Module interface {
 	Schema() string
 	// RegisterRoutes mounts the module's HTTP endpoints under /api/v1/<ID>/
 	RegisterRoutes(mux *http.ServeMux, requireAuth func(http.Handler) http.Handler)
+}
+
+// ConfigurableModule is an optional interface that modules can implement
+// to receive the shared database handle and server configuration on startup.
+type ConfigurableModule interface {
+	Module
+	Init(db *database.DB, cfg *config.Config) error
 }
 
 // MigratableModule is an optional interface that modules can implement

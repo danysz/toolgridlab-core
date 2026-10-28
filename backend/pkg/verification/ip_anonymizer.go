@@ -55,3 +55,20 @@ func (a *IPAnonymizer) HashIP(rawIP string) string {
 	hasher.Write([]byte(a.salt + ":" + cleanIP))
 	return hex.EncodeToString(hasher.Sum(nil))
 }
+
+// ExtractClientCountry extracts the 2-letter ISO country code from Cloudflare or GCP headers.
+// Returns fallback (e.g., "US") if no edge country header is present or if set to "XX"/"T1".
+func ExtractClientCountry(r *http.Request, fallback string) string {
+	candidates := []string{
+		r.Header.Get("CF-IPCountry"),
+		r.Header.Get("X-AppEngine-Country"),
+		r.Header.Get("X-Country-Code"),
+	}
+	for _, c := range candidates {
+		code := strings.ToUpper(strings.TrimSpace(c))
+		if len(code) == 2 && code != "XX" && code != "T1" && code != "ZZ" {
+			return code
+		}
+	}
+	return fallback
+}
