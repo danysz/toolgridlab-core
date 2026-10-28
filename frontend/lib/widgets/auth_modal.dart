@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 import '../auth/auth_service.dart';
+import 'brand_logo.dart';
 
 class AuthModal extends StatelessWidget {
   final AuthService authService;
@@ -27,13 +28,20 @@ class AuthModal extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Welcome to ToolGridLab',
-                    style: GoogleFonts.inter(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.textPrimary,
-                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const BrandLogo(size: 32, showGlow: false),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Welcome to ToolGridLab',
+                        style: GoogleFonts.inter(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                    ],
                   ),
                   IconButton(
                     icon: const Icon(Icons.close, size: 20, color: AppTheme.textMuted),

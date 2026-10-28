@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 import '../auth/auth_service.dart';
 import 'auth_modal.dart';
+import 'brand_logo.dart';
 
 class AppNavBar extends StatelessWidget {
   final String appName;
@@ -31,28 +32,7 @@ class AppNavBar extends StatelessWidget {
           // Brand Logo + Name
           Row(
             children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppTheme.primaryGradientStart, AppTheme.primaryGradientEnd],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppTheme.primary.withValues(alpha: 0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Center(
-                  child: Icon(Icons.grid_view_rounded, color: Colors.white, size: 22),
-                ),
-              ),
+              const BrandLogo(size: 38),
               const SizedBox(width: 12),
               Text(
                 appName,

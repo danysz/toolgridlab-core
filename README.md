@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="frontend/web/logo.svg" alt="ToolGridLab Logo" width="88" height="88" />
+</p>
+
 # ToolGridLab Core Engine (`toolgridlab-core`)
 
 [![Go Version](https://img.shields.io/badge/Go-1.22+-00ADD8?style=flat&logo=go)](https://golang.org)

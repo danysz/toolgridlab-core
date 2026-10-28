@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
+import 'brand_logo.dart';
 
 class AppFooter extends StatelessWidget {
   const AppFooter({super.key});
@@ -29,15 +30,7 @@ class AppFooter extends StatelessWidget {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Container(
-                        width: 28,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          color: AppTheme.primary,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(Icons.grid_view_rounded, color: Colors.white, size: 16),
-                      ),
+                      const BrandLogo(size: 28, showGlow: false),
                       const SizedBox(width: 10),
                       Text(
                         'ToolGridLab Core',
